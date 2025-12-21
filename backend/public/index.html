@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Room</title>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700&display=swap');
+
+      :root {
+        --sun: #FFD41D;
+        --ember: #FFA240;
+        --crimson: #D73535;
+        --coral: #FF4646;
+        --coal: #1D0707;
+        --sand: #FFE5A0;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Barlow', 'Segoe UI', sans-serif;
+        background: radial-gradient(circle at 20% 20%, var(--sun), transparent 60%),
+                    radial-gradient(circle at 80% 0%, rgba(255,70,70,0.6), transparent 55%),
+                    linear-gradient(135deg, var(--ember), var(--crimson));
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: var(--coal);
+        padding: 20px;
+      }
+
+      .container {
+        background: rgba(29, 7, 7, 0.9);
+        width: min(92%, 700px);
+        height: 85vh;
+        border-radius: 32px;
+        border: 2px solid rgba(255, 212, 29, 0.3);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        backdrop-filter: blur(6px);
+      }
+
+      .header {
+        background: linear-gradient(120deg, rgba(255, 212, 29, 0.85), rgba(255, 70, 70, 0.9));
+        color: var(--coal);
+        padding: 28px;
+        text-align: center;
+        letter-spacing: 0.05em;
+      }
+
+      .header h1 {
+        font-size: clamp(1.6rem, 3vw, 2.2rem);
+        margin-bottom: 6px;
+        text-transform: uppercase;
+      }
+
+      .status {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: rgba(29, 7, 7, 0.8);
+      }
+
+      #messages {
+        flex: 1;
+        padding: 30px;
+        overflow-y: auto;
+        background: linear-gradient(180deg, rgba(255, 162, 64, 0.15), rgba(255, 70, 70, 0.05));
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+
+      .message {
+        padding: 14px 18px;
+        border-radius: 18px;
+        max-width: 75%;
+        word-wrap: break-word;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        animation: float-up 0.3s ease;
+      }
+
+      .message.system {
+        background: rgba(255, 212, 29, 0.2);
+        color: var(--sun);
+        font-size: 0.9rem;
+        text-align: center;
+        max-width: 100%;
+        font-style: italic;
+      }
+
+      .message.received {
+        background: rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(255, 162, 64, 0.4);
+        color: var(--sand);
+        align-self: flex-start;
+      }
+
+      .message.sent {
+        background: linear-gradient(120deg, var(--coral), var(--crimson));
+        color: #fff9e8;
+        margin-left: auto;
+        align-self: flex-end;
+        box-shadow: 0 10px 25px rgba(215, 53, 53, 0.35);
+      }
+
+      .message-user {
+        font-weight: 700;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .message-text {
+        font-size: 1rem;
+        line-height: 1.4;
+      }
+
+      .message-time {
+        font-size: 0.75rem;
+        opacity: 0.7;
+      }
+
+      .input-area {
+        display: flex;
+        padding: 24px;
+        background: rgba(29, 7, 7, 0.95);
+        border-top: 1px solid rgba(255, 70, 70, 0.35);
+        gap: 12px;
+      }
+
+      #userInput,
+      #messageInput {
+        padding: 14px;
+        border-radius: 16px;
+        border: none;
+        font-size: 1rem;
+        font-family: inherit;
+        color: var(--coal);
+        background: rgba(255, 255, 255, 0.9);
+      }
+
+      #userInput {
+        flex: 0 0 160px;
+      }
+
+      #messageInput {
+        flex: 1;
+      }
+
+      #messageInput:focus,
+      #userInput:focus {
+        outline: 2px solid rgba(255, 212, 29, 0.8);
+        outline-offset: 2px;
+      }
+
+      #sendBtn {
+        padding: 14px 34px;
+        background: linear-gradient(120deg, var(--sun), var(--coral));
+        color: var(--coal);
+        border: none;
+        border-radius: 16px;
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        box-shadow: 0 12px 25px rgba(255, 70, 70, 0.35);
+      }
+
+      #sendBtn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 18px 30px rgba(255, 70, 70, 0.45);
+      }
+
+      #sendBtn:active {
+        transform: translateY(0);
+      }
+
+      .typing {
+        padding: 0 30px 16px;
+        font-size: 0.85rem;
+        color: rgba(255, 229, 160, 0.75);
+        font-style: italic;
+      }
+
+      @keyframes float-up {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @media (max-width: 640px) {
+        .container {
+          height: 90vh;
+        }
+
+        .input-area {
+          flex-direction: column;
+        }
+
+        #userInput {
+          flex: 1;
+        }
+
+        #sendBtn {
+          width: 100%;
+        }
+      }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Chat Room</h1>
+            <div class="status" id="status">Connecting...</div>
+        </div>
+        <div id="messages"></div>
+        <div class="typing" id="typing"></div>
+        <div class="input-area">
+            <input type="text" id="userInput" placeholder="Your Name"  value="User"/>
+            <input type="text" id="messageInput" placeholder="Type a message..." />
+            <button id="sendBtn">Send</button>
+        </div>
+    </div>
+</body>
+</html>

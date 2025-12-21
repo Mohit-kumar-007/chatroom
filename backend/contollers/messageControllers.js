@@ -88,4 +88,18 @@ const deleteMessage=(req,res)=>{
     }
 }
 
-module.exports={getMessages,createMessage,deleteMessage};
+
+//adding new messages
+const addMessage=(messageData)=>{
+    const newMessage={
+        id: messages.length + 1,
+        text: messageData.text,
+        user: messageData.user,
+        timestamp: new Date().toISOString()
+    }
+    messages.push(newMessage);
+    return newMessage;
+};
+
+ 
+module.exports={getMessages,createMessage,deleteMessage, addMessage};

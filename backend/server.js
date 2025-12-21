@@ -1,17 +1,30 @@
 const express = require('express');
 const cors = require('cors');
-const app=express();
+const dotenv = require('dotenv');
+const http = require('http');
+const { Server } = require('socket.io');
+const { addMessage } = require('./contollers/messageControllers');
 
-const dotenv=require('dotenv');
-const port=5000;
 
 //dotenv in our server.js
 dotenv.config();
+
+
+const app = express();
+const httpServer = http.createServer(app);
+const io = new Server(httpServer,{
+    cors:{
+        origin:'*',
+        methods:['GET','POST']
+    }
+});
+const port=5000;
 
 //Middlewares
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(express.static('public'));
 
 //Routes in server file
 app.use('/api/messages', require('./routes/messageRoutes'));
@@ -25,10 +38,20 @@ app.get('/', (req, res) => {
             getMessages: 'GET /api/messages',
             createMessage: 'POST /api/messages',
             deleteMessage: 'DELETE /api/messages',
+            testClinet:'GET /index.html'
         }
     });
 });
 
+//scoket connection in backend
+io.on('connection',(socket)=>{
+    console.log('User socket id is :',socket.id);
+
+    socket.on('message',(messageData)=>{
+        const savedMessage = addMessage(messageData);
+        io.emit('message', savedMessage);
+    });
+});
 
 //error handling 
 
@@ -49,6 +72,6 @@ app.use((err,req,res,next)=>{
 });
    
 
-app.listen(port, () => {
+httpServer.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 });
