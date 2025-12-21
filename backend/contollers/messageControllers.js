@@ -36,7 +36,7 @@ const getMessages = (req, res) => {
 
 
 //post the message 
-const postMessage = (req, res) => {
+const createMessage = (req, res) => {
     try{
         const { text, user } = req.body;
 
@@ -52,9 +52,40 @@ const postMessage = (req, res) => {
             text,
             user,
             timestamp: new Date().toISOString()
-        }
+        };
+        messages.push(newMessage);
+        res.status(201).json({
+            success:true,
+            message:'Message created successfully',
+            data: newMessage
+        });
     } catch(error){
-        
+        res.status(500).json({
+            success:false,
+            message:'Server Error',
+            error: error.message
+        })
+
 
     }
 };
+
+
+//delete message
+const deleteMessage=(req,res)=>{
+    try{
+        messages=[];
+        res.json({
+            success:true,
+            message:'All messages deleted successfully'
+        });
+    }catch(error){
+        res.status(500).json({
+            success:false,
+            message:'Server Error',
+            error: error.message
+        })
+    }
+}
+
+module.exports={getMessages,createMessage,deleteMessage};
