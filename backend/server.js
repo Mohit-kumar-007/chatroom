@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const http = require('http');
+const path = require('path');
 const { Server } = require('socket.io');
 const { addMessage } = require('./contollers/messageControllers');
 
@@ -28,11 +29,6 @@ app.use(express.static('../frontend/build'));
 
 //Routes in server file
 app.use('/api/messages', require('./routes/messageRoutes'));
-
-// Catch-all route to serve React app for any non-API routes
-app.get('*', (req, res) => {
-    res.sendFile(require('path').join(__dirname, '../frontend/build/index.html'));
-});
 
 //socket connection in backend
 io.on('connection',(socket)=>{
@@ -71,6 +67,15 @@ io.on('connection',(socket)=>{
 });
 
 //error handling 
+
+app.use((req,res, next)=>{
+    // If it's not an API route, serve the React app
+    if (!req.path.startsWith('/api')) {
+        res.sendFile(path.join(__dirname, '../frontend/build/index.html'));
+    } else {
+        next();
+    }
+});
 
 app.use((req,res)=>{
     res.status(404).json({
