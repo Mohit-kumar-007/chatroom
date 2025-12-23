@@ -25,7 +25,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 // Serve React frontend build instead of public folder
-app.use(express.static('../frontend/build'));
+app.use(express.static(path.join(__dirname, '../frontend/build')));
 
 //Routes in server file
 app.use('/api/messages', require('./routes/messageRoutes'));
