@@ -23,23 +23,15 @@ const port= process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static('public'));
+// Serve React frontend build instead of public folder
+app.use(express.static('../frontend/build'));
 
 //Routes in server file
 app.use('/api/messages', require('./routes/messageRoutes'));
 
-//root rout
-app.get('/', (req, res) => {
-    res.send({
-        message: 'Welcome to the Message API',
-        version: '1.0.0',
-        endpoints: {
-            getMessages: 'GET /api/messages',
-            createMessage: 'POST /api/messages',
-            deleteMessage: 'DELETE /api/messages',
-            testClinet:'GET /index.html'
-        }
-    });
+// Catch-all route to serve React app for any non-API routes
+app.get('*', (req, res) => {
+    res.sendFile(require('path').join(__dirname, '../frontend/build/index.html'));
 });
 
 //socket connection in backend
