@@ -42,13 +42,39 @@ app.get('/', (req, res) => {
     });
 });
 
-//scoket connection in backend
+//socket connection in backend
 io.on('connection',(socket)=>{
     console.log('User socket id is :',socket.id);
+
+    socket.emit('message',{
+        user:"System",
+        text:"welcome to the Chat Room !",
+        timestamp:new Date().toISOString()
+    });
 
     socket.on('message',(messageData)=>{
         const savedMessage = addMessage(messageData);
         io.emit('message', savedMessage);
+    });
+
+    socket.broadcast.emit('message',{
+        user:"System",
+        text:"A new user has joined the chat",
+        timestamp:new Date().toISOString()
+    });
+
+    socket.on('typing',(data)=>{
+        socket.broadcast.emit('userTyping',data);
+    });
+
+    //disconnect function
+    socket.on('disconnect',()=>{
+        console.log('User disconnected ',socket.id);
+        io.emit('message',{
+            user:"System",
+            text:"A user has left the chat",
+            timestamp:new Date().toISOString()
+        });
     });
 });
 

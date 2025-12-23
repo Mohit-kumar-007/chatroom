@@ -90,11 +90,13 @@
       }
 
       .message.system {
-        background: rgba(255, 212, 29, 0.2);
+        background: rgba(255, 212, 29, 0.18);
         color: var(--sun);
-        font-size: 0.9rem;
+        font-size: 0.8rem;
         text-align: center;
-        max-width: 100%;
+        max-width: 55%;
+        padding: 10px 14px;
+        margin: 0 auto;
         font-style: italic;
       }
 
@@ -240,61 +242,86 @@
     </div>
     <script src="/socket.io/socket.io.js"></script>
     <script>
-        
       const socket = io();
-      const messageDiv= document.getElementById('messages');
-       const messageInput = document.getElementById('messageInput');
-       const userInput = document.getElementById('userInput');
-       const sendBtn = document.getElementById('sendBtn');
-       const statusDiv = document.getElementById('status');
-       const typingDiv = document.getElementById('typing');
+      const messagesList = document.getElementById('messages');
+      const messageInput = document.getElementById('messageInput');
+      const userInput = document.getElementById('userInput');
+      const sendBtn = document.getElementById('sendBtn');
+      const statusDiv = document.getElementById('status');
+      const typingDiv = document.getElementById('typing');
+      let typingTimeout;
 
+      const addMessageToFeed = (payload, type = 'received') => {
+        const bubble = document.createElement('div');
+        bubble.className = `message ${type}`;
 
-       let typingTimeout;
-       //connection status
-       socket.on('connect', () => {
-         statusDiv.textContent = '🟢 Connected';
-         console.log('Connected to server');
-       });
+        if (type === 'system') {
+          bubble.innerHTML = `
+            <div class="message-user">${payload.user}</div>
+            <div class="message-text">${payload.text}</div>
+            <div class="message-time">${new Date(payload.timestamp).toLocaleTimeString()}</div>`;
+        } else {
+          bubble.innerHTML = `
+            <div class="message-user">${payload.user}</div>
+            <div class="message-text">${payload.text}</div>
+            <div class="message-time">${new Date(payload.timestamp || Date.now()).toLocaleTimeString()}</div>`;
+        }
 
-       socket.on('disconnect', () => {
-         statusDiv.textContent = '🔴 Disconnected';
-         console.log('Disconnected from server');
-       });
+        messagesList.appendChild(bubble);
+        messagesList.scrollTop = messagesList.scrollHeight;
+      };
 
-       //system message
-         socket.on('message', (data) => {
-            displayMessages('data', system);
-         });
-         //function 
-         function displayMessages(data, type) {
-           const messageDiv = document.createElement('div');
-           messageDiv.className = `message ${type}`;
+      const sendMessage = () => {
+        const text = messageInput.value.trim();
+        if (!text) return;
+        const user = userInput.value.trim() || 'Guest';
+        const payload = { user, text };
+        socket.emit('message', payload);
+        messageInput.value = '';
+      };
 
-           if (type === 'system') {
-             messageElement.textContent = data;
-           } else {
-             const userElement = document.createElement('div');
-             userElement.classList.add('message-user');
-             userElement.textContent = data.user;
+      sendBtn.addEventListener('click', sendMessage);
+      messageInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          sendMessage();
+        }
+      });
 
-             const textElement = document.createElement('div');
-             textElement.classList.add('message-text');
-             textElement.textContent = data.text;
+      socket.on('connect', () => {
+        statusDiv.textContent = '🟢 Connected';
+      });
 
-             const timeElement = document.createElement('div');
-             timeElement.classList.add('message-time');
-             const time = new Date(data.time);
-             timeElement.textContent = time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      socket.on('disconnect', () => {
+        statusDiv.textContent = '🔴 Disconnected';
+      });
 
-             messageElement.appendChild(userElement);
-             messageElement.appendChild(textElement);
-             messageElement.appendChild(timeElement);
-           }
+      socket.on('message', (payload) => {
+        const currentUser = userInput.value.trim() || 'Guest';
+        let type = 'received';
+        if (payload.user === 'System') {
+          type = 'system';
+        } else if (payload.user === currentUser) {
+          type = 'sent';
+        }
+        addMessageToFeed(payload, type);
+      });
 
-           messageDiv.appendChild(messageElement);
-           messageDiv.scrollTop = messageDiv.scrollHeight;
-         }
-      </script>
+      //typing functionality
+      messageInput.addEventListener('input', () => {
+        const user = userInput.value.trim() || 'User';
+        socket.emit('typing', { user });
+      });
+
+      //listen when other user is typing
+      socket.on('userTyping',(data)=>{
+        typingDiv.textContent = `${data.user} is typing...`;
+        clearTimeout(typingTimeout);
+        typingTimeout = setTimeout(() => {
+          typingDiv.textContent = '';
+        }, 2000);
+      });
+
+    </script>
 </body>
 </html>
