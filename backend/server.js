@@ -5,14 +5,13 @@ const http = require('http');
 const { Server } = require('socket.io');
 const { addMessage } = require('./contollers/messageControllers');
 
-
 //dotenv in our server.js
 dotenv.config();
 
 
 const app = express();
-const httpServer = http.createServer(app);
-const io = new Server(httpServer,{
+const server = http.createServer(app);
+const io = new Server(server,{
     cors:{
         origin:'*',
         methods:['GET','POST']
@@ -72,6 +71,6 @@ app.use((err,req,res,next)=>{
 });
    
 
-httpServer.listen(port, () => {
+server.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 });

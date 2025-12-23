@@ -238,5 +238,63 @@
             <button id="sendBtn">Send</button>
         </div>
     </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        
+      const socket = io();
+      const messageDiv= document.getElementById('messages');
+       const messageInput = document.getElementById('messageInput');
+       const userInput = document.getElementById('userInput');
+       const sendBtn = document.getElementById('sendBtn');
+       const statusDiv = document.getElementById('status');
+       const typingDiv = document.getElementById('typing');
+
+
+       let typingTimeout;
+       //connection status
+       socket.on('connect', () => {
+         statusDiv.textContent = '🟢 Connected';
+         console.log('Connected to server');
+       });
+
+       socket.on('disconnect', () => {
+         statusDiv.textContent = '🔴 Disconnected';
+         console.log('Disconnected from server');
+       });
+
+       //system message
+         socket.on('message', (data) => {
+            displayMessages('data', system);
+         });
+         //function 
+         function displayMessages(data, type) {
+           const messageDiv = document.createElement('div');
+           messageDiv.className = `message ${type}`;
+
+           if (type === 'system') {
+             messageElement.textContent = data;
+           } else {
+             const userElement = document.createElement('div');
+             userElement.classList.add('message-user');
+             userElement.textContent = data.user;
+
+             const textElement = document.createElement('div');
+             textElement.classList.add('message-text');
+             textElement.textContent = data.text;
+
+             const timeElement = document.createElement('div');
+             timeElement.classList.add('message-time');
+             const time = new Date(data.time);
+             timeElement.textContent = time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+             messageElement.appendChild(userElement);
+             messageElement.appendChild(textElement);
+             messageElement.appendChild(timeElement);
+           }
+
+           messageDiv.appendChild(messageElement);
+           messageDiv.scrollTop = messageDiv.scrollHeight;
+         }
+      </script>
 </body>
 </html>
